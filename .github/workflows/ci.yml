@@ -24,8 +24,8 @@ jobs:
         run: ruff check src tests examples
       - name: Test
         run: pytest tests -q
-      - name: Examples smoke
+      - name: Examples smoke (dependency-free core)
         run: |
-          for f in examples/*.py; do
-            python "$f" > /dev/null
-          done
+          python examples/context_and_services.py > /dev/null
+          python examples/event_bus.py > /dev/null
+          python examples/epoch_reload_and_hot_config.py > /dev/null

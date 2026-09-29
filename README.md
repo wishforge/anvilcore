@@ -23,12 +23,14 @@ Run any of them directly — each is standalone and prints what it proves:
 |---|---|
 | `examples/context_and_services.py` | Context attribute reads, extend/isolate, scoped tenancy, teardown |
 | `examples/event_bus.py` | five dispatch modes (emit/parallel/serial/bail/waterfall), scope filtering |
-| `examples/capability_lifecycle.py` | install -> unload -> reinstall with zero residue |
+| `examples/capability_lifecycle.py` | install -> unload -> reinstall with zero residue (needs `agentscope`) |
 | `examples/epoch_reload_and_hot_config.py` | dependency auto-reload and schema-validated config hot update |
-| `examples/webhook_verifier.py` | best-practice business plugin: HMAC webhook verification + secret rotation |
+| `examples/webhook_verifier.py` | best-practice business plugin: HMAC webhook verification + secret rotation (needs `agentscope`) |
 
-Start with `context_and_services.py`, then `capability_lifecycle.py`; the
-others stand on their own.
+Start with `context_and_services.py`, then `capability_lifecycle.py`.
+
+The core runs on the standard library alone; the two AgentScope
+integration examples additionally need `pip install agentscope`.
 
 ## Usage
 
