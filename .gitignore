@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+pilot/state/
+research/control-plane-loop/data/
+research/control-plane-loop/.venv/
+
+# build artifacts and local state
+*.egg-info/
+dist/
+build/
+.venv/
+logs/
+work-rotation/
+
+# internal engineering docs -- not part of the open-source release
+docs/superpowers/

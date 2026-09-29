@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycordis"
+version = "0.1.0"
+description = "pycordis: a Cordis-style plugin kernel for Python: install, unload and reinstall capabilities in a long-running process with dependency-ordered teardown and guaranteed cleanup."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "kugua" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: AsyncIO",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff>=0.8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pycordis*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# ruff configuration: the floor this project holds itself to.
+# Line length 96 (PEP8 allows teams to exceed 79 for maintainability);
+# E501 stays on so long lines still surface for manual judgement.
+
+[tool.ruff]
+line-length = 96
+target-version = "py311"
+exclude = ["docs/archaeology", "*.egg-info"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes (undefined names, unused imports/variables)
+    "I",      # import sorting
+    "B",      # bugbear (common footguns)
+    "UP",     # pyupgrade (modern syntax)
+    "RUF",    # ruff-specific (unused noqa etc.)
+    "BLE",    # blind except -- allowed only with an inline justification
+]
