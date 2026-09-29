@@ -29,13 +29,13 @@ from agentscope.permission import (
 from agentscope.state import AgentState
 from agentscope.tool import FunctionTool, Toolkit
 
-from pycordis.adapters.agentscope import (
+from anvilcore.adapters.agentscope import (
     EventHub,
     register_service,
     register_tool,
     spawn,
 )
-from pycordis.semantic_layer import (
+from anvilcore.semantic_layer import (
     ACTIVE,
     CLEANED,
     DISPOSED,

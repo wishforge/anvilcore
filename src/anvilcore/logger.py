@@ -43,7 +43,7 @@ class Logger:
     def __init__(self, service: LoggerService, name: str) -> None:
         self._service = service
         self._name = name
-        self._log = logging.getLogger(f"pycordis.{name}")
+        self._log = logging.getLogger(f"anvilcore.{name}")
 
     def _write(self, level: str, text: str) -> None:
         self._log.log(_LEVELS[level], text)

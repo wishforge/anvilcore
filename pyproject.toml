@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pycordis"
+name = "anvilcore"
 version = "0.1.0"
-description = "pycordis: a Cordis-style plugin kernel for Python: install, unload and reinstall capabilities in a long-running process with dependency-ordered teardown and guaranteed cleanup."
+description = "anvilcore: a Cordis-style plugin kernel for Python: install, unload and reinstall capabilities in a long-running process with dependency-ordered teardown and guaranteed cleanup."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
@@ -22,7 +22,7 @@ dev = ["ruff>=0.8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["pycordis*"]
+include = ["anvilcore*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

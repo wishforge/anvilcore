@@ -15,9 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from agentscope.tool import FunctionTool, Toolkit
 
-from pycordis import CapabilityDescriptor, PluginManager
-from pycordis.adapters.agentscope import register_tool
-from pycordis.semantic_layer import PluginScope
+from anvilcore import CapabilityDescriptor, PluginManager
+from anvilcore.adapters.agentscope import register_tool
+from anvilcore.semantic_layer import PluginScope
 
 
 class RateLimiterCapability:

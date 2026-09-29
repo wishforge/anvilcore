@@ -1,7 +1,7 @@
 """01 -- Context, services and scoped isolation in 60 seconds.
 
 Business value: a long-running agent process accumulates services
-(database pools, verifiers, rate limiters). pycordis gives each one a
+(database pools, verifiers, rate limiters). anvilcore gives each one a
 name, a scope to live in, and a guaranteed teardown -- install something,
 and its removal is already registered.
 
@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from pycordis import Context, Service
+from anvilcore import Context, Service
 
 
 class ClockService(Service):

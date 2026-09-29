@@ -1,13 +1,13 @@
-# pycordis
+# anvilcore
 
 A Cordis-style plugin kernel for Python long-running processes.
 
-> **Attribution:** pycordis is an independent Python implementation of the
+> **Attribution:** anvilcore is an independent Python implementation of the
 > Cordis kernel semantics (`@cordiverse/cordis` 4.0.4). Not affiliated with
 > or endorsed by the cordiverse project.
 
 > **Rename note:** this package was previously developed as `plugin_kernel`
-> inside agent-capability-forge and renamed `pycordis` before open-sourcing.
+> inside agent-capability-forge and renamed `anvilcore` before open-sourcing.
 
 Every side effect a capability introduces — a tool entry, an event listener,
 a background task — must hand over its own disposer at registration time and
@@ -35,7 +35,7 @@ integration examples additionally need `pip install agentscope`.
 ## Usage
 
 ```python
-from pycordis import CapabilityDescriptor, PluginManager
+from anvilcore import CapabilityDescriptor, PluginManager
 
 manager = PluginManager()
 

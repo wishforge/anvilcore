@@ -1,4 +1,4 @@
-"""Context: the Cordis-style facade over the pycordis core.
+"""Context: the Cordis-style facade over the anvilcore core.
 
 Python adaptation of context.ts (no JS Proxy): attribute reads resolve
 through ReflectService with isolate-label matching, then shadow properties

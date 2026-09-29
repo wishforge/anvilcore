@@ -4,7 +4,7 @@ Migrated from ``docs/architecture/../python-cordis/kernel`` (kugua, 2026-08-16)
 so the validated Cordis semantic layer has a canonical import path under
 ``src/forge`` instead of living inside archaeology docs.
 
-``pycordis.adapters`` deliberately stays out of this ``__init__``: it
+``anvilcore.adapters`` deliberately stays out of this ``__init__``: it
 imports AgentScope, which is optional for consumers of the core semantics.
 """
 

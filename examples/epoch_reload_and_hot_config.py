@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from pycordis import CapabilityDescriptor, Context
+from anvilcore import CapabilityDescriptor, Context
 
 
 async def main() -> None:

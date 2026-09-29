@@ -23,18 +23,18 @@ from agentscope.permission import (
 from agentscope.state import AgentState
 from agentscope.tool import FunctionTool, Toolkit
 
-from pycordis.adapters.agentscope import (
+from anvilcore.adapters.agentscope import (
     EventHub,
     register_service,
     register_tool,
     spawn,
 )
-from pycordis.capability import (
+from anvilcore.capability import (
     REGISTERED,
     CapabilityDescriptor,
 )
-from pycordis.manager import PluginManager
-from pycordis.semantic_layer import ACTIVE, CLEANED, DISPOSED
+from anvilcore.manager import PluginManager
+from anvilcore.semantic_layer import ACTIVE, CLEANED, DISPOSED
 
 
 class LogRuntime:

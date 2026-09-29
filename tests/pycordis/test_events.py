@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from pycordis.context import Context
+from anvilcore.context import Context
 
 
 class EventsTests(unittest.IsolatedAsyncioTestCase):

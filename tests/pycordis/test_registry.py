@@ -7,9 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from pycordis.capability import CapabilityDescriptor
-from pycordis.context import Context
-from pycordis.semantic_layer import PluginScope
+from anvilcore.capability import CapabilityDescriptor
+from anvilcore.context import Context
+from anvilcore.semantic_layer import PluginScope
 
 
 class RegistryTests(unittest.IsolatedAsyncioTestCase):

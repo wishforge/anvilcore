@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from pycordis.config import ConfigError, Volatile, resolve_config
-from pycordis.logger import LoggerService
+from anvilcore.config import ConfigError, Volatile, resolve_config
+from anvilcore.logger import LoggerService
 
 
 def _schema(raw: dict) -> dict:
