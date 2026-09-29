@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" pytest pytest-asyncio
+      - name: Lint
+        run: ruff check src tests examples
+      - name: Test
+        run: pytest tests -q
+      - name: Examples smoke
+        run: |
+          for f in examples/*.py; do
+            python "$f" > /dev/null
+          done
