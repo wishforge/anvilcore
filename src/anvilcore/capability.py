@@ -92,6 +92,7 @@ class Capability:
         self._inflight = 0
         self._drained: asyncio.Event = asyncio.Event()
         self._drained.set()
+        self._inflight_tasks: set[asyncio.Task] = set()
 
     async def install(self) -> None:
         for dep in self.dependencies:
@@ -124,12 +125,34 @@ class Capability:
             return False
         self._inflight += 1
         self._drained.clear()
+        task = asyncio.current_task()
+        if task is not None:
+            self._inflight_tasks.add(task)
         return True
 
     def _release(self) -> None:
         self._inflight = max(0, self._inflight - 1)
+        task = asyncio.current_task()
+        if task is not None:
+            self._inflight_tasks.discard(task)
         if self._inflight == 0:
             self._drained.set()
+
+    def _cancel_inflight(self) -> int:
+        """Last resort after a drain deadline expires (uvicorn/gunicorn
+        pattern: bounded wait, then force). Cancelling a call TERMINATES it
+        by definition, so the count is zeroed here -- correctness must not
+        depend on the business code remembering to release in its own
+        exception path. Returns the number cancelled."""
+        cancelled = 0
+        for task in list(self._inflight_tasks):
+            if not task.done():
+                task.cancel("drain deadline exceeded")
+                cancelled += 1
+        self._inflight = 0
+        self._inflight_tasks.clear()
+        self._drained.set()
+        return cancelled
 
     async def _wait_drained(self) -> None:
         await self._drained.wait()

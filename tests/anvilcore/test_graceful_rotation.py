@@ -145,3 +145,47 @@ class GracefulRotationTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BoundedDrainTests(unittest.IsolatedAsyncioTestCase):
+    """gunicorn graceful_timeout pattern: bounded wait, then force-cancel."""
+
+    async def test_unload_deadline_cancels_hung_inflight(self):
+        ctx = Context()
+        registry = ctx.registry
+        started = asyncio.Event()
+        cancelled = {"flag": False}
+
+        def factory_fixed(scope):
+            class Cap:
+                async def install(self) -> None:
+                    async def hung() -> str:
+                        if not scope.acquire():
+                            return "draining"
+                        try:
+                            started.set()
+                            await asyncio.sleep(60)
+                            return "done"
+                        finally:
+                            scope.release()   # correct business hygiene
+                        # note: even WITHOUT this finally, the framework's
+                        # forced cancel zeroes the count (see _cancel_inflight)
+
+                    async def publish(collect):
+                        collect("tool:hung", lambda: None)
+
+                    self.hung = hung
+                    await scope.effect("install", publish)
+            return Cap()
+
+        d = CapabilityDescriptor(id="app", version="1", factory=factory_fixed)
+        await registry.plugin(d)
+        cap = registry.manager.get("app").instance.instance
+        task = asyncio.create_task(cap.hung())
+        await started.wait()
+
+        # unload with a drain deadline: the hung call gets cancelled at T+0.1s
+        await registry.manager.unload("app", drain_timeout=0.1)
+        self.assertEqual(registry.manager.get("app").instance.state, "DISPOSED")
+        with self.assertRaises(asyncio.CancelledError):
+            await task   # the hung call did not survive the deadline

@@ -83,7 +83,8 @@ class PluginManager:
         finally:
             self._install_tasks.pop(capability_id, None)
 
-    async def unload(self, capability_id: str) -> list[BaseException]:
+    async def unload(self, capability_id: str,
+                     drain_timeout: float | None = None) -> list[BaseException]:
         record = self.get(capability_id)
         cap = record.instance
         if cap is None or cap.state == DISPOSED:
@@ -95,7 +96,16 @@ class PluginManager:
             )
         if cap.state == ACTIVE:
             cap.retire()                      # stop accepting new work
-            await cap._wait_drained()         # ... and let in-flight finish
+            if drain_timeout is None:
+                await cap._wait_drained()     # ... and let in-flight finish
+            else:
+                # bounded drain (gunicorn graceful_timeout pattern): after
+                # the deadline, cancel in-flight calls as the last resort
+                try:
+                    await asyncio.wait_for(cap._wait_drained(), drain_timeout)
+                except TimeoutError:
+                    if cap._cancel_inflight():
+                        await cap._wait_drained()
         if cap.state == INSTALLING:
             raise UnloadBlockedError(f"capability {capability_id!r} is installing")
         task = self._unload_tasks.get(capability_id)
