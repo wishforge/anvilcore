@@ -25,6 +25,7 @@ from .semantic_layer import (
 
 REGISTERED = "REGISTERED"
 INSTALLING = "INSTALLING"
+RETIRING = "RETIRING"
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +51,13 @@ class _OwnedScope(PluginScope):
     def __init__(self, owner: Capability, name: str) -> None:
         super().__init__(name=name)
         self._owner = owner
+
+    # graceful-rotation surface for business code (same layer as scope.config)
+    def acquire(self) -> bool:
+        return self._owner._acquire()
+
+    def release(self) -> None:
+        self._owner._release()
 
     async def dispose(self) -> list[BaseException]:
         self._owner._begin_dispose()
@@ -80,6 +88,10 @@ class Capability:
         self.state = INSTALLING
         self._dispose_task: asyncio.Task[list[BaseException]] | None = None
         self.physical_disposes = 0
+        # graceful rotation: in-flight bookkeeping (see acquire/retire)
+        self._inflight = 0
+        self._drained: asyncio.Event = asyncio.Event()
+        self._drained.set()
 
     async def install(self) -> None:
         for dep in self.dependencies:
@@ -96,6 +108,32 @@ class Capability:
         self._transition(INSTALLING, ACTIVE)
         self.deps.activate(self.descriptor.id)
 
+    def retire(self) -> None:
+        """Stop accepting new work; in-flight calls keep running.
+
+        The capability leaves ACTIVE (so a replacement generation can be
+        installed for the same id) but its scope stays alive until the
+        in-flight count drains to zero and dispose() runs."""
+        if self.state == ACTIVE:
+            self._transition(ACTIVE, RETIRING)
+
+    def _acquire(self) -> bool:
+        """Claim one in-flight slot. False => this generation is retired;
+        the caller should route the work to the current generation."""
+        if self.state != ACTIVE:
+            return False
+        self._inflight += 1
+        self._drained.clear()
+        return True
+
+    def _release(self) -> None:
+        self._inflight = max(0, self._inflight - 1)
+        if self._inflight == 0:
+            self._drained.set()
+
+    async def _wait_drained(self) -> None:
+        await self._drained.wait()
+
     async def dispose(self) -> list[BaseException]:
         if self.state == DISPOSED:
             return []
@@ -105,7 +143,7 @@ class Capability:
         return await self._dispose_task
 
     def _begin_dispose(self) -> None:
-        if self.state in (ACTIVE, INSTALLING, FAILED):
+        if self.state in (ACTIVE, RETIRING, INSTALLING, FAILED):
             self.state = DISPOSING
 
     def _finish_dispose(self) -> None:
@@ -113,6 +151,9 @@ class Capability:
             self.state = DISPOSED
 
     async def _dispose(self) -> list[BaseException]:
+        # graceful shutdown: hold the scope until in-flight calls finish
+        if self._inflight > 0:
+            await self._drained.wait()
         self.physical_disposes += 1
         for dep in self.dependencies:
             dep.dependents.discard(self.descriptor.id)

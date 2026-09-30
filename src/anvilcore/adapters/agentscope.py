@@ -45,10 +45,10 @@ def register_tool(
     )
     if target is None:
         raise ValueError(f"tool group {group!r} not found")
-    if any(t.name == tool.name for t in target.tools):
-        raise ValueError(
-            f"tool {tool.name!r} already registered in group {group!r}",
-        )
+    # Same name with a different object = a new generation of the same
+    # capability rotating in. Replace, so the toolkit never shows a gap.
+    for existing in [t for t in target.tools if t.name == tool.name]:
+        target.tools.remove(existing)
     target.tools.append(tool)
 
     def unregister() -> None:
@@ -101,8 +101,8 @@ def register_service(
     obj: Any,
 ) -> Cleanup:
     """Register into a plain service dict; return an idempotent unregister."""
-    if name in services:
-        raise ValueError(f"service {name!r} already registered")
+    # same name = a new generation rotating in; replace instead of raising
+    # (double-install of one capability id is guarded by the state machine)
     services[name] = obj
 
     def unregister() -> None:

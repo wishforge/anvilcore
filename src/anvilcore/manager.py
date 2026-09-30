@@ -11,6 +11,7 @@ from .capability import (
     DISPOSING,
     INSTALLING,
     REGISTERED,
+    RETIRING,
     Capability,
     CapabilityDescriptor,
 )
@@ -47,6 +48,7 @@ class PluginManager:
     def __init__(self) -> None:
         self.records: dict[str, CapabilityRecord] = {}
         self.deps = DependencyLifecycle()
+        self._drain_tasks: set[asyncio.Task] = set()
         self._install_tasks: dict[str, asyncio.Task[Capability]] = {}
         self._unload_tasks: dict[str, asyncio.Task[list[BaseException]]] = {}
 
@@ -86,13 +88,16 @@ class PluginManager:
         cap = record.instance
         if cap is None or cap.state == DISPOSED:
             return []
-        if cap.state == INSTALLING:
-            raise UnloadBlockedError(f"capability {capability_id!r} is installing")
         if cap.state == ACTIVE and cap.dependents:
             raise UnloadBlockedError(
                 f"cannot unload {capability_id!r}: active dependents "
                 f"{sorted(cap.dependents)}",
             )
+        if cap.state == ACTIVE:
+            cap.retire()                      # stop accepting new work
+            await cap._wait_drained()         # ... and let in-flight finish
+        if cap.state == INSTALLING:
+            raise UnloadBlockedError(f"capability {capability_id!r} is installing")
         task = self._unload_tasks.get(capability_id)
         if task is not None and not task.done():
             return await task
@@ -104,8 +109,20 @@ class PluginManager:
             self._unload_tasks.pop(capability_id, None)
 
     async def reinstall(self, capability_id: str) -> Capability:
-        await self.unload(capability_id)
-        return await self.install(capability_id)
+        """Replace the current generation without waiting for its drain.
+
+        The old generation is retired (refuses new work, keeps serving
+        in-flight calls) and disposes itself in the background once its
+        in-flight count drains. Rotation therefore never blocks on a
+        long-running call."""
+        old = self.get(capability_id).instance
+        if old is not None and old.state == ACTIVE:
+            old.retire()
+        cap = await self.install(capability_id)
+        if old is not None and old is not cap and old.state == RETIRING:
+            # background drain+clean; the task holds its own reference
+            self._drain_tasks.add(asyncio.create_task(old.dispose()))
+        return cap
 
     async def _do_unload(self, record: CapabilityRecord) -> list[BaseException]:
         return await self._unload_one(record.instance)

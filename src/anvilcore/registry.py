@@ -73,6 +73,8 @@ class RegistryService:
         if config is not None:
             object.__setattr__(descriptor, "config", config)
             self._configs[plugin_id] = dict(config)
+        # graceful rotation lives in manager.reinstall: the replacement goes
+        # live immediately, the retired generation drains in the background
         return await self.manager.reinstall(plugin_id)
 
     async def delete(self, plugin_id: str) -> list[BaseException]:

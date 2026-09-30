@@ -215,10 +215,15 @@ class AgentScopeBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.scope.state, DISPOSED)
 
     async def test_double_install_and_double_dispose(self) -> None:
-        with self.assertRaises(ValueError):
-            await self.cap.install()
+        # same-name registration now REPLACES (rotation semantics): the
+        # toolkit never shows a gap and never holds duplicates. Double
+        # install of the same capability id is guarded by the manager's
+        # state machine instead.
+        await self.cap.install()
+        # tools are replaced by name (no gap, no duplicates); anonymous
+        # listeners stack until the older generation's dispose runs
         self.assertEqual(len(self.toolkit.tool_groups[0].tools), 1)
-        self.assertEqual(len(self.hub.listeners), 1)
+        self.assertEqual(len(self.hub.listeners), 2)
         self.assertIn("fs", self.services)
 
         first = await self.cap.dispose()
