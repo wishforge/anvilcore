@@ -154,7 +154,6 @@ class BoundedDrainTests(unittest.IsolatedAsyncioTestCase):
         ctx = Context()
         registry = ctx.registry
         started = asyncio.Event()
-        cancelled = {"flag": False}
 
         def factory_fixed(scope):
             class Cap:
